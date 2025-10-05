@@ -1,4 +1,4 @@
-import { Test, TestQuestion, TestFormData, TestAssignment, TestAttempt, Certificate } from '../types/test';
+import { Test, TestQuestion, TestFormData, TestAssignment, TestAttempt, Certificate, TestStatistics, TestAttemptSummary } from '../types/test';
 
 const sampleCertificates: Certificate[] = [
   { id: 'cert-1', name: 'React Professional', description: 'React development certification' },
@@ -61,7 +61,7 @@ const sampleTests: Test[] = [
     description: 'Advanced TypeScript concepts and best practices',
     createdAt: '2024-01-25',
     updatedAt: '2024-01-25',
-    status: 'draft',
+    status: 'inactive',
     documents: [
       { name: 'TypeScript Best Practices.pdf', fileType: 'pdf', uploadedAt: '2024-01-25' }
     ],
@@ -140,7 +140,7 @@ export const testService = {
     setTimeout(() => {
       const test = sampleTests.find(t => t.id === newTest.id);
       if (test && test.status === 'processing') {
-        test.status = 'draft';
+        test.status = 'inactive';
         test.processingJobId = undefined;
 
         for (let i = 0; i < testData.questionCount; i++) {
@@ -292,5 +292,90 @@ export const testService = {
     if (assignment) {
       assignment.attempts.push(attempt);
     }
+  },
+
+  async publishTest(testId: string): Promise<Test> {
+    await delay(300);
+    const test = sampleTests.find(t => t.id === testId);
+    if (!test) {
+      throw new Error('Test not found');
+    }
+    if (test.status !== 'inactive') {
+      throw new Error('Only inactive tests can be published');
+    }
+    if (test.questions.length === 0) {
+      throw new Error('Cannot publish test with no questions');
+    }
+
+    test.status = 'active';
+    test.publishedAt = new Date().toISOString();
+    test.updatedAt = new Date().toISOString().split('T')[0];
+    return test;
+  },
+
+  async unpublishTest(testId: string): Promise<Test> {
+    await delay(300);
+    const test = sampleTests.find(t => t.id === testId);
+    if (!test) {
+      throw new Error('Test not found');
+    }
+    if (test.status !== 'active') {
+      throw new Error('Only active tests can be unpublished');
+    }
+
+    test.status = 'inactive';
+    test.updatedAt = new Date().toISOString().split('T')[0];
+    return test;
+  },
+
+  async getTestStatistics(testId: string): Promise<TestStatistics> {
+    await delay(500);
+    const test = sampleTests.find(t => t.id === testId);
+    if (!test) {
+      throw new Error('Test not found');
+    }
+
+    const allAttempts = sampleTestAssignments
+      .filter(a => a.testId === testId)
+      .flatMap(a => a.attempts);
+
+    const completedAttempts = allAttempts.filter(a => a.status === 'completed');
+    const uniqueUsers = new Set(allAttempts.map(a => a.userId)).size;
+    const totalAttempts = allAttempts.length;
+
+    const averageScore = completedAttempts.length > 0
+      ? completedAttempts.reduce((sum, a) => sum + (a.score || 0), 0) / completedAttempts.length
+      : 0;
+
+    const passedAttempts = completedAttempts.filter(a => a.passed).length;
+    const passRate = completedAttempts.length > 0
+      ? (passedAttempts / completedAttempts.length) * 100
+      : 0;
+
+    const attemptSummaries: TestAttemptSummary[] = allAttempts.map(attempt => ({
+      attemptId: attempt.id,
+      userId: attempt.userId,
+      userName: attempt.userName,
+      startedAt: attempt.startedAt,
+      completedAt: attempt.completedAt,
+      score: attempt.score,
+      pointsEarned: attempt.pointsEarned,
+      totalPoints: attempt.totalPoints,
+      passed: attempt.passed,
+      attemptNumber: attempt.attemptNumber,
+      answers: attempt.answers
+    }));
+
+    return {
+      testId: test.id,
+      testName: test.name,
+      totalAttempts,
+      uniqueUsers,
+      averageScore: Math.round(averageScore * 10) / 10,
+      passRate: Math.round(passRate * 10) / 10,
+      attempts: attemptSummaries.sort((a, b) =>
+        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+      )
+    };
   }
 };

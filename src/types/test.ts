@@ -4,7 +4,8 @@ export interface Test {
   description: string;
   createdAt: string;
   updatedAt: string;
-  status: 'processing' | 'draft' | 'active' | 'inactive';
+  publishedAt?: string;
+  status: 'processing' | 'inactive' | 'active';
   documents: TestDocument[];
   questions: TestQuestion[];
   duration: number;
@@ -59,6 +60,8 @@ export interface TestAssignment {
 
 export interface TestAttempt {
   id: string;
+  userId: string;
+  userName: string;
   startedAt: string;
   completedAt?: string;
   score?: number;
@@ -67,6 +70,7 @@ export interface TestAttempt {
   passed: boolean;
   status: 'in_progress' | 'completed' | 'abandoned';
   answers: TestAnswerRecord[];
+  attemptNumber: number;
 }
 
 export interface TestAnswerRecord {
@@ -81,4 +85,28 @@ export interface Certificate {
   id: string;
   name: string;
   description: string;
+}
+
+export interface TestStatistics {
+  testId: string;
+  testName: string;
+  totalAttempts: number;
+  uniqueUsers: number;
+  averageScore: number;
+  passRate: number;
+  attempts: TestAttemptSummary[];
+}
+
+export interface TestAttemptSummary {
+  attemptId: string;
+  userId: string;
+  userName: string;
+  startedAt: string;
+  completedAt?: string;
+  score?: number;
+  pointsEarned?: number;
+  totalPoints?: number;
+  passed: boolean;
+  attemptNumber: number;
+  answers: TestAnswerRecord[];
 }
