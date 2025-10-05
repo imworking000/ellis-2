@@ -48,9 +48,9 @@ const correctAnswers: Record<string, string> = {
 };
 
 const sampleUsers: User[] = [
-  { id: 'user-1', username: 'john', password: 'password123', name: 'John Doe', email: 'john@example.com' },
-  { id: 'user-2', username: 'jane', password: 'password123', name: 'Jane Smith', email: 'jane@example.com' },
-  { id: 'user-3', username: 'demo', password: 'demo', name: 'Demo User', email: 'demo@example.com' }
+  { id: 'user-1', username: 'sjohnson', password: 'pass123', name: 'Sarah Johnson', email: 'sjohnson@example.com' },
+  { id: 'user-2', username: 'mchen', password: 'pass123', name: 'Michael Chen', email: 'mchen@example.com' },
+  { id: 'user-3', username: 'erodriguez', password: 'pass123', name: 'Emily Rodriguez', email: 'erodriguez@example.com' }
 ];
 
 let activeSessions: UserTestSession[] = [];
@@ -64,7 +64,7 @@ const userTestAttempts: Record<string, Array<{ testId: string; completedAt: stri
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const userTestService = {
-  async login(loginData: UserTestLogin): Promise<{ user: User }> {
+  async login(loginData: UserTestLogin): Promise<{ user: User; assignments: UserTestAssignment[] }> {
     await delay(800);
 
     const user = sampleUsers.find(u => u.username === loginData.username && u.password === loginData.password);
@@ -73,7 +73,9 @@ export const userTestService = {
       throw new Error('Invalid username or password');
     }
 
-    return { user };
+    const assignments = await this.getUserTestAssignments(user.id);
+
+    return { user, assignments };
   },
 
   async getUserTestAssignments(userId: string): Promise<UserTestAssignment[]> {
@@ -101,18 +103,39 @@ export const userTestService = {
         nextRetryAt = new Date(nextRetryTime).toISOString();
       }
 
+      const canTakeNow = !lastAttempt || lastAttempt.passed || canRetry;
+      let retryMessage: string | undefined;
+
+      if (lastAttempt && !lastAttempt.passed && !canRetry && nextRetryAt) {
+        const retryDate = new Date(nextRetryAt);
+        const now = new Date();
+        const hoursLeft = Math.ceil((retryDate.getTime() - now.getTime()) / (1000 * 60 * 60));
+
+        if (hoursLeft > 0) {
+          retryMessage = `You can retry this test in ${hoursLeft} hour${hoursLeft > 1 ? 's' : ''}. Next attempt available: ${retryDate.toLocaleString()}`;
+        }
+      } else if (testAttempts.length >= test.retryCount && lastAttempt && !lastAttempt.passed) {
+        retryMessage = 'You have used all available attempts for this test.';
+      }
+
       return {
         testId: test.id,
         testName: test.name,
+        description: test.description,
         status: test.status as 'active' | 'inactive',
+        duration: test.duration,
+        questionCount: test.questions.length,
         lastAttempt: lastAttempt ? {
           completedAt: lastAttempt.completedAt,
           passed: lastAttempt.passed,
+          score: 60,
           canRetry,
           nextRetryAt: !canRetry && nextRetryAt ? nextRetryAt : undefined
         } : undefined,
         attemptsUsed: testAttempts.length,
-        maxAttempts: test.retryCount
+        maxAttempts: test.retryCount,
+        canTakeNow,
+        retryMessage
       };
     }).filter((a): a is UserTestAssignment => a !== null);
   },
