@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, FileText, Calendar, Users, AlertTriangle, CreditCard as Edit3, Eye, Trash2, Loader2, ExternalLink } from 'lucide-react';
+import { Plus, FileText, Calendar, Users, AlertTriangle, CreditCard as Edit3, Eye, Trash2, Loader2, ExternalLink, Lock, Unlock } from 'lucide-react';
 import { Test } from '../../types/test';
 import { testService } from '../../services/testService';
 import { jobService } from '../../services/jobService';
@@ -140,6 +140,7 @@ export const TestsList: React.FC<TestsListProps> = ({ onTestSelect, onJobSelect 
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left py-3 px-4 font-medium text-black">Test</th>
+                <th className="text-left py-3 px-4 font-medium text-black">Status</th>
                 <th className="text-left py-3 px-4 font-medium text-black">Questions</th>
                 <th className="text-left py-3 px-4 font-medium text-black">Sources</th>
                 <th className="text-left py-3 px-4 font-medium text-black">Updated</th>
@@ -180,6 +181,28 @@ export const TestsList: React.FC<TestsListProps> = ({ onTestSelect, onJobSelect 
                           </p>
                         )}
                       </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div>
+                      {test.status === 'active' && (
+                        <div className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium w-fit">
+                          <Lock className="w-3 h-3" />
+                          Published
+                        </div>
+                      )}
+                      {test.status === 'inactive' && (
+                        <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium w-fit">
+                          <Unlock className="w-3 h-3" />
+                          Draft
+                        </div>
+                      )}
+                      {test.status === 'processing' && (
+                        <div className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium w-fit">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Processing
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="py-4 px-4">

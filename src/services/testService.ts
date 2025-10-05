@@ -13,6 +13,7 @@ const sampleTests: Test[] = [
     description: 'Test covering basic React concepts and JSX syntax',
     createdAt: '2024-01-20',
     updatedAt: '2024-01-22',
+    publishedAt: '2024-01-22T10:30:00Z',
     status: 'active',
     documents: [
       { name: 'React Fundamentals Guide.pdf', fileType: 'pdf', uploadedAt: '2024-01-20' }
@@ -28,7 +29,7 @@ const sampleTests: Test[] = [
           { id: 'd', text: 'Mobile app development only' }
         ],
         correctAnswerId: 'a',
-        points: 3,
+        points: 10,
         isManual: false,
         createdAt: '2024-01-20',
         updatedAt: '2024-01-20'
@@ -43,7 +44,52 @@ const sampleTests: Test[] = [
           { id: 'd', text: 'JSON' }
         ],
         correctAnswerId: 'b',
-        points: 3,
+        points: 10,
+        isManual: false,
+        createdAt: '2024-01-20',
+        updatedAt: '2024-01-20'
+      },
+      {
+        id: 'q3',
+        question: 'What is a React Hook?',
+        options: [
+          { id: 'a', text: 'A function that lets you use state in function components' },
+          { id: 'b', text: 'A CSS styling method' },
+          { id: 'c', text: 'A database query tool' },
+          { id: 'd', text: 'A testing framework' }
+        ],
+        correctAnswerId: 'a',
+        points: 10,
+        isManual: false,
+        createdAt: '2024-01-20',
+        updatedAt: '2024-01-20'
+      },
+      {
+        id: 'q4',
+        question: 'What is the virtual DOM?',
+        options: [
+          { id: 'a', text: 'A lightweight copy of the actual DOM' },
+          { id: 'b', text: 'A CSS framework' },
+          { id: 'c', text: 'A database system' },
+          { id: 'd', text: 'A testing tool' }
+        ],
+        correctAnswerId: 'a',
+        points: 10,
+        isManual: false,
+        createdAt: '2024-01-20',
+        updatedAt: '2024-01-20'
+      },
+      {
+        id: 'q5',
+        question: 'What does useState return?',
+        options: [
+          { id: 'a', text: 'An array with state value and setter function' },
+          { id: 'b', text: 'A single state value' },
+          { id: 'c', text: 'An object with multiple values' },
+          { id: 'd', text: 'A promise' }
+        ],
+        correctAnswerId: 'a',
+        points: 10,
         isManual: false,
         createdAt: '2024-01-20',
         updatedAt: '2024-01-20'
@@ -95,8 +141,183 @@ const sampleTestAssignments: TestAssignment[] = [
     id: 'assign-1',
     testId: 'test-1',
     userId: 'user-1',
-    assignedAt: '2024-01-20',
-    attempts: []
+    assignedAt: '2024-01-22',
+    attempts: [
+      {
+        id: 'attempt-1',
+        userId: 'user-1',
+        userName: 'Sarah Johnson',
+        startedAt: '2024-01-23T09:15:00Z',
+        completedAt: '2024-01-23T09:35:00Z',
+        score: 80,
+        pointsEarned: 40,
+        totalPoints: 50,
+        passed: true,
+        status: 'completed',
+        attemptNumber: 1,
+        answers: [
+          { questionId: 'q1', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T09:17:00Z' },
+          { questionId: 'q2', selectedOptionId: 'b', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T09:20:00Z' },
+          { questionId: 'q3', selectedOptionId: 'b', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-23T09:25:00Z' },
+          { questionId: 'q4', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T09:30:00Z' },
+          { questionId: 'q5', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T09:33:00Z' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'assign-2',
+    testId: 'test-1',
+    userId: 'user-2',
+    assignedAt: '2024-01-22',
+    attempts: [
+      {
+        id: 'attempt-2',
+        userId: 'user-2',
+        userName: 'Michael Chen',
+        startedAt: '2024-01-23T14:00:00Z',
+        completedAt: '2024-01-23T14:25:00Z',
+        score: 60,
+        pointsEarned: 30,
+        totalPoints: 50,
+        passed: false,
+        status: 'completed',
+        attemptNumber: 1,
+        answers: [
+          { questionId: 'q1', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T14:05:00Z' },
+          { questionId: 'q2', selectedOptionId: 'a', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-23T14:10:00Z' },
+          { questionId: 'q3', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T14:15:00Z' },
+          { questionId: 'q4', selectedOptionId: 'b', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-23T14:20:00Z' },
+          { questionId: 'q5', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T14:23:00Z' }
+        ]
+      },
+      {
+        id: 'attempt-3',
+        userId: 'user-2',
+        userName: 'Michael Chen',
+        startedAt: '2024-01-24T10:00:00Z',
+        completedAt: '2024-01-24T10:28:00Z',
+        score: 100,
+        pointsEarned: 50,
+        totalPoints: 50,
+        passed: true,
+        status: 'completed',
+        attemptNumber: 2,
+        answers: [
+          { questionId: 'q1', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T10:05:00Z' },
+          { questionId: 'q2', selectedOptionId: 'b', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T10:10:00Z' },
+          { questionId: 'q3', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T10:15:00Z' },
+          { questionId: 'q4', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T10:22:00Z' },
+          { questionId: 'q5', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T10:26:00Z' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'assign-3',
+    testId: 'test-1',
+    userId: 'user-3',
+    assignedAt: '2024-01-22',
+    attempts: [
+      {
+        id: 'attempt-4',
+        userId: 'user-3',
+        userName: 'Emily Rodriguez',
+        startedAt: '2024-01-23T16:30:00Z',
+        completedAt: '2024-01-23T16:55:00Z',
+        score: 90,
+        pointsEarned: 45,
+        totalPoints: 50,
+        passed: true,
+        status: 'completed',
+        attemptNumber: 1,
+        answers: [
+          { questionId: 'q1', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T16:35:00Z' },
+          { questionId: 'q2', selectedOptionId: 'b', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T16:40:00Z' },
+          { questionId: 'q3', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T16:45:00Z' },
+          { questionId: 'q4', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-23T16:50:00Z' },
+          { questionId: 'q5', selectedOptionId: 'b', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-23T16:53:00Z' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'assign-4',
+    testId: 'test-1',
+    userId: 'user-4',
+    assignedAt: '2024-01-22',
+    attempts: [
+      {
+        id: 'attempt-5',
+        userId: 'user-4',
+        userName: 'David Kim',
+        startedAt: '2024-01-24T08:00:00Z',
+        completedAt: '2024-01-24T08:22:00Z',
+        score: 70,
+        pointsEarned: 35,
+        totalPoints: 50,
+        passed: true,
+        status: 'completed',
+        attemptNumber: 1,
+        answers: [
+          { questionId: 'q1', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T08:05:00Z' },
+          { questionId: 'q2', selectedOptionId: 'b', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T08:10:00Z' },
+          { questionId: 'q3', selectedOptionId: 'b', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-24T08:14:00Z' },
+          { questionId: 'q4', selectedOptionId: 'c', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-24T08:18:00Z' },
+          { questionId: 'q5', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T08:20:00Z' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'assign-5',
+    testId: 'test-1',
+    userId: 'user-5',
+    assignedAt: '2024-01-22',
+    attempts: [
+      {
+        id: 'attempt-6',
+        userId: 'user-5',
+        userName: 'Jessica Taylor',
+        startedAt: '2024-01-24T13:00:00Z',
+        completedAt: '2024-01-24T13:20:00Z',
+        score: 40,
+        pointsEarned: 20,
+        totalPoints: 50,
+        passed: false,
+        status: 'completed',
+        attemptNumber: 1,
+        answers: [
+          { questionId: 'q1', selectedOptionId: 'b', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-24T13:05:00Z' },
+          { questionId: 'q2', selectedOptionId: 'b', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T13:08:00Z' },
+          { questionId: 'q3', selectedOptionId: 'c', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-24T13:12:00Z' },
+          { questionId: 'q4', selectedOptionId: 'a', isCorrect: true, pointsEarned: 10, answeredAt: '2024-01-24T13:16:00Z' },
+          { questionId: 'q5', selectedOptionId: 'c', isCorrect: false, pointsEarned: 0, answeredAt: '2024-01-24T13:19:00Z' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'assign-6',
+    testId: 'test-1',
+    userId: 'user-6',
+    assignedAt: '2024-01-22',
+    attempts: [
+      {
+        id: 'attempt-7',
+        userId: 'user-6',
+        userName: 'Alex Martinez',
+        startedAt: '2024-01-25T11:00:00Z',
+        completedAt: undefined,
+        score: undefined,
+        pointsEarned: undefined,
+        totalPoints: undefined,
+        passed: false,
+        status: 'in_progress',
+        attemptNumber: 1,
+        answers: []
+      }
+    ]
   }
 ];
 
