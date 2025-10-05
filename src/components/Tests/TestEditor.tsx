@@ -20,10 +20,28 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
   const [questionToDelete, setQuestionToDelete] = useState<TestQuestion | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [showStatistics, setShowStatistics] = useState(false);
+  const [editingSettings, setEditingSettings] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({
+    duration: 0,
+    minSuccessPercentage: 0,
+    retryCount: 0,
+    retryBackoffHours: 0
+  });
 
   useEffect(() => {
     loadTest();
   }, [testId]);
+
+  useEffect(() => {
+    if (test) {
+      setSettingsForm({
+        duration: test.duration,
+        minSuccessPercentage: test.minSuccessPercentage,
+        retryCount: test.retryCount,
+        retryBackoffHours: test.retryBackoffHours
+      });
+    }
+  }, [test]);
 
   const loadTest = async () => {
     try {
@@ -132,6 +150,35 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!test) return;
+    try {
+      const updatedTest = await testService.updateTest(test.id, {
+        duration: settingsForm.duration,
+        minSuccessPercentage: settingsForm.minSuccessPercentage,
+        retryCount: settingsForm.retryCount,
+        retryBackoffHours: settingsForm.retryBackoffHours
+      });
+      setTest(updatedTest);
+      setEditingSettings(false);
+    } catch (error) {
+      console.error('Failed to update test settings:', error);
+      alert('Failed to update test settings');
+    }
+  };
+
+  const handleCancelSettings = () => {
+    if (test) {
+      setSettingsForm({
+        duration: test.duration,
+        minSuccessPercentage: test.minSuccessPercentage,
+        retryCount: test.retryCount,
+        retryBackoffHours: test.retryBackoffHours
+      });
+    }
+    setEditingSettings(false);
   };
 
   if (loading) {
@@ -254,15 +301,128 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
                 This test is published and in read-only mode
               </p>
               <p className="text-blue-700 text-sm">
-                Unpublish the test to make changes to questions
+                Unpublish the test to make changes to questions or settings
               </p>
             </div>
           </div>
         </div>
       )}
 
+      {/* Test Settings */}
+      <div className="max-w-7xl mx-auto p-6 border-b border-gray-200">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-black">Test Settings</h2>
+            {canEdit && !editingSettings && (
+              <button
+                onClick={() => setEditingSettings(true)}
+                className="flex items-center gap-2 text-[#5D5D5D] hover:text-[#F8AF00] transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+                Edit Settings
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Test Duration (minutes)
+              </label>
+              {editingSettings ? (
+                <input
+                  type="number"
+                  min="1"
+                  value={settingsForm.duration}
+                  onChange={(e) => setSettingsForm(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-[#5D5D5D]">{test.duration} minutes</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Minimum Passing Score (%)
+              </label>
+              {editingSettings ? (
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={settingsForm.minSuccessPercentage}
+                  onChange={(e) => setSettingsForm(prev => ({ ...prev, minSuccessPercentage: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-[#5D5D5D]">{test.minSuccessPercentage}%</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Maximum Retry Attempts
+              </label>
+              {editingSettings ? (
+                <input
+                  type="number"
+                  min="0"
+                  value={settingsForm.retryCount}
+                  onChange={(e) => setSettingsForm(prev => ({ ...prev, retryCount: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-[#5D5D5D]">{test.retryCount} {test.retryCount === 1 ? 'attempt' : 'attempts'}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Retry Backoff Period (hours)
+              </label>
+              {editingSettings ? (
+                <input
+                  type="number"
+                  min="0"
+                  value={settingsForm.retryBackoffHours}
+                  onChange={(e) => setSettingsForm(prev => ({ ...prev, retryBackoffHours: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-[#5D5D5D]">{test.retryBackoffHours} hours</p>
+              )}
+            </div>
+          </div>
+
+          {editingSettings && (
+            <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+              <button
+                onClick={handleCancelSettings}
+                className="px-4 py-2 border border-gray-300 text-[#5D5D5D] rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSettings}
+                className="flex items-center gap-2 bg-[#F8AF00] text-black px-4 py-2 rounded-lg hover:bg-[#E69F00] transition-colors font-medium"
+              >
+                <Save className="w-4 h-4" />
+                Save Settings
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Questions List */}
       <div className="max-w-7xl mx-auto p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-black">Test Questions</h2>
+          <span className="text-sm text-[#5D5D5D]">
+            {test.questions.length} {test.questions.length === 1 ? 'question' : 'questions'}
+          </span>
+        </div>
         <div className="space-y-6">
           {test.questions.map((question, index) => (
             <div

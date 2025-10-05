@@ -394,8 +394,18 @@ export const testService = {
       throw new Error('Test not found');
     }
 
+    const currentTest = sampleTests[testIndex];
+    if (currentTest.status === 'active' && (
+      testData.duration !== undefined ||
+      testData.minSuccessPercentage !== undefined ||
+      testData.retryCount !== undefined ||
+      testData.retryBackoffHours !== undefined
+    )) {
+      throw new Error('Cannot update settings of a published test');
+    }
+
     const updatedTest = {
-      ...sampleTests[testIndex],
+      ...currentTest,
       ...testData,
       updatedAt: new Date().toISOString().split('T')[0]
     };
