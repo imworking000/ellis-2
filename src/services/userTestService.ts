@@ -1,139 +1,192 @@
-import { UserTestSession, UserTestLogin, UserTestQuestion, UserTestResult, UserAnswer } from '../types/userTest';
-import { PlannedTest } from '../types/plannedTest';
-import { plannedTestService } from './plannedTestService';
+import { UserTestSession, UserTestLogin, UserTestQuestion, UserTestResult, UserAnswer, User, UserTestAssignment } from '../types/userTest';
+import { testService } from './testService';
 
-// Mock test questions for demonstration
-const mockTestQuestions: UserTestQuestion[] = [
-  {
-    id: 'q1',
-    question: 'What is React primarily used for?',
-    options: [
-      { id: 'a', text: 'Building user interfaces' },
-      { id: 'b', text: 'Database management' },
-      { id: 'c', text: 'Server-side scripting' },
-      { id: 'd', text: 'Mobile app development only' }
-    ]
-  },
-  {
-    id: 'q2',
-    question: 'Which syntax does React use to describe UI elements?',
-    options: [
-      { id: 'a', text: 'HTML' },
-      { id: 'b', text: 'JSX' },
-      { id: 'c', text: 'XML' },
-      { id: 'd', text: 'JSON' }
-    ]
-  },
-  {
-    id: 'q3',
-    question: 'What are React hooks used for?',
-    options: [
-      { id: 'a', text: 'State management in functional components' },
-      { id: 'b', text: 'Styling components' },
-      { id: 'c', text: 'Database connections' },
-      { id: 'd', text: 'File uploads' }
-    ]
-  },
-  {
-    id: 'q4',
-    question: 'Which method is used to render a React component?',
-    options: [
-      { id: 'a', text: 'render()' },
-      { id: 'b', text: 'display()' },
-      { id: 'c', text: 'show()' },
-      { id: 'd', text: 'mount()' }
-    ]
-  },
-  {
-    id: 'q5',
-    question: 'What is the virtual DOM in React?',
-    options: [
-      { id: 'a', text: 'A lightweight copy of the real DOM' },
-      { id: 'b', text: 'A database for storing component data' },
-      { id: 'c', text: 'A CSS framework' },
-      { id: 'd', text: 'A testing library' }
-    ]
-  }
-];
+const mockTestQuestions: Record<string, UserTestQuestion[]> = {
+  'test-1': [
+    {
+      id: 'q1',
+      question: 'What is React primarily used for?',
+      options: [
+        { id: 'a', text: 'Building user interfaces' },
+        { id: 'b', text: 'Database management' },
+        { id: 'c', text: 'Server-side scripting' },
+        { id: 'd', text: 'Mobile app development only' }
+      ],
+      points: 3
+    },
+    {
+      id: 'q2',
+      question: 'Which syntax does React use to describe UI elements?',
+      options: [
+        { id: 'a', text: 'HTML' },
+        { id: 'b', text: 'JSX' },
+        { id: 'c', text: 'XML' },
+        { id: 'd', text: 'JSON' }
+      ],
+      points: 3
+    }
+  ],
+  'test-2': [
+    {
+      id: 'q3',
+      question: 'What are TypeScript generics used for?',
+      options: [
+        { id: 'a', text: 'Type safety with reusable components' },
+        { id: 'b', text: 'Runtime performance optimization' },
+        { id: 'c', text: 'Database connections' },
+        { id: 'd', text: 'CSS styling' }
+      ],
+      points: 4
+    }
+  ]
+};
 
-// Correct answers for scoring
 const correctAnswers: Record<string, string> = {
   'q1': 'a',
   'q2': 'b',
-  'q3': 'a',
-  'q4': 'a',
-  'q5': 'a'
+  'q3': 'a'
 };
 
-// Mock active sessions
+const sampleUsers: User[] = [
+  { id: 'user-1', username: 'john', password: 'password123', name: 'John Doe', email: 'john@example.com' },
+  { id: 'user-2', username: 'jane', password: 'password123', name: 'Jane Smith', email: 'jane@example.com' },
+  { id: 'user-3', username: 'demo', password: 'demo', name: 'Demo User', email: 'demo@example.com' }
+];
+
 let activeSessions: UserTestSession[] = [];
 
-// Simulate API delays
+const userTestAttempts: Record<string, Array<{ testId: string; completedAt: string; passed: boolean; }>> = {
+  'user-1': [
+    { testId: 'test-1', completedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), passed: false }
+  ]
+};
+
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const userTestService = {
-  async loginToTest(loginData: UserTestLogin): Promise<{ session: UserTestSession; plannedTest: PlannedTest }> {
+  async login(loginData: UserTestLogin): Promise<{ user: User }> {
     await delay(800);
-    
-    // Find planned test by code
-    const allPlannedTests = await plannedTestService.getAllPlannedTests();
-    const plannedTest = allPlannedTests.find(test => test.code === loginData.testCode.toUpperCase());
-    
-    if (!plannedTest) {
-      throw new Error('Test code not found. Please check your test code and try again.');
+
+    const user = sampleUsers.find(u => u.username === loginData.username && u.password === loginData.password);
+
+    if (!user) {
+      throw new Error('Invalid username or password');
     }
 
-    // Check if test is in progress
-    if (plannedTest.status !== 'in_progress') {
-      if (plannedTest.status === 'planned') {
-        throw new Error('This test has not started yet. Please wait for the scheduled start time.');
-      } else {
-        throw new Error('This test has already ended. Please contact your administrator.');
+    return { user };
+  },
+
+  async getUserTestAssignments(userId: string): Promise<UserTestAssignment[]> {
+    await delay(500);
+
+    const assignments = await testService.getTestAssignments(userId);
+    const tests = await testService.getAllTests();
+    const userAttempts = userTestAttempts[userId] || [];
+
+    return assignments.map(assignment => {
+      const test = tests.find(t => t.id === assignment.testId);
+      if (!test) return null;
+
+      const testAttempts = userAttempts.filter(a => a.testId === test.id);
+      const lastAttempt = testAttempts[testAttempts.length - 1];
+
+      let canRetry = false;
+      let nextRetryAt: string | undefined;
+
+      if (lastAttempt && !lastAttempt.passed) {
+        const attemptTime = new Date(lastAttempt.completedAt).getTime();
+        const backoffMs = test.retryBackoffHours * 60 * 60 * 1000;
+        const nextRetryTime = attemptTime + backoffMs;
+        canRetry = Date.now() >= nextRetryTime && testAttempts.length < test.retryCount;
+        nextRetryAt = new Date(nextRetryTime).toISOString();
+      }
+
+      return {
+        testId: test.id,
+        testName: test.name,
+        status: test.status as 'active' | 'inactive',
+        lastAttempt: lastAttempt ? {
+          completedAt: lastAttempt.completedAt,
+          passed: lastAttempt.passed,
+          canRetry,
+          nextRetryAt: !canRetry && nextRetryAt ? nextRetryAt : undefined
+        } : undefined,
+        attemptsUsed: testAttempts.length,
+        maxAttempts: test.retryCount
+      };
+    }).filter((a): a is UserTestAssignment => a !== null);
+  },
+
+  async startTest(userId: string, testId: string): Promise<UserTestSession> {
+    await delay(800);
+
+    const test = await testService.getTest(testId);
+    if (!test) {
+      throw new Error('Test not found');
+    }
+
+    if (test.status !== 'active') {
+      throw new Error('This test is not currently active');
+    }
+
+    const user = sampleUsers.find(u => u.id === userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const userAttempts = userTestAttempts[userId] || [];
+    const testAttempts = userAttempts.filter(a => a.testId === testId);
+    const lastAttempt = testAttempts[testAttempts.length - 1];
+
+    if (lastAttempt && !lastAttempt.passed) {
+      const attemptTime = new Date(lastAttempt.completedAt).getTime();
+      const backoffMs = test.retryBackoffHours * 60 * 60 * 1000;
+      const nextRetryTime = attemptTime + backoffMs;
+
+      if (Date.now() < nextRetryTime) {
+        throw new Error(`You must wait until ${new Date(nextRetryTime).toLocaleString()} before retrying this test`);
+      }
+
+      if (testAttempts.length >= test.retryCount) {
+        throw new Error('You have used all available retry attempts for this test');
       }
     }
 
-    // Check attendee slots (mock logic)
-    const currentAttendees = activeSessions.filter(s => s.plannedTestId === plannedTest.id).length;
-    if (currentAttendees >= plannedTest.attendees) {
-      throw new Error('This test session is full. No more attendee slots available.');
-    }
-
-    // Create new session
     const session: UserTestSession = {
       id: `session-${Date.now()}`,
-      plannedTestId: plannedTest.id,
-      testCode: plannedTest.code,
-      testName: plannedTest.testName,
-      attendeeName: `${loginData.firstName} ${loginData.lastName}`,
-      attendeeEmail: `${loginData.firstName.toLowerCase()}.${loginData.lastName.toLowerCase()}@company.com`,
+      testId: test.id,
+      userId: user.id,
+      testName: test.name,
+      userName: user.name,
       startedAt: new Date().toISOString(),
       currentQuestionIndex: 0,
       answers: [],
       status: 'in_progress',
-      timeRemaining: plannedTest.timeWindow * 60, // Convert minutes to seconds
-      totalQuestions: mockTestQuestions.length
+      timeRemaining: test.duration * 60,
+      totalQuestions: mockTestQuestions[testId]?.length || 0,
+      attemptNumber: testAttempts.length + 1
     };
 
     activeSessions.push(session);
-    return { session, plannedTest };
+    return session;
   },
 
-  async getTestQuestions(): Promise<UserTestQuestion[]> {
+  async getTestQuestions(testId: string): Promise<UserTestQuestion[]> {
     await delay(300);
-    return [...mockTestQuestions];
+    return [...(mockTestQuestions[testId] || [])];
   },
 
   async submitAnswer(sessionId: string, questionId: string, selectedOptionId: string): Promise<UserTestSession> {
     await delay(200);
-    
+
     const sessionIndex = activeSessions.findIndex(s => s.id === sessionId);
     if (sessionIndex === -1) {
       throw new Error('Session not found');
     }
 
     const session = activeSessions[sessionIndex];
-    
-    // Add or update answer
+    const questions = mockTestQuestions[session.testId] || [];
+
     const existingAnswerIndex = session.answers.findIndex(a => a.questionId === questionId);
     const answer: UserAnswer = {
       questionId,
@@ -147,9 +200,8 @@ export const userTestService = {
       session.answers.push(answer);
     }
 
-    // Move to next question if not already there
-    const currentQuestionId = mockTestQuestions[session.currentQuestionIndex]?.id;
-    if (currentQuestionId === questionId && session.currentQuestionIndex < mockTestQuestions.length - 1) {
+    const currentQuestionId = questions[session.currentQuestionIndex]?.id;
+    if (currentQuestionId === questionId && session.currentQuestionIndex < questions.length - 1) {
       session.currentQuestionIndex++;
     }
 
@@ -159,7 +211,7 @@ export const userTestService = {
 
   async completeTest(sessionId: string): Promise<UserTestResult> {
     await delay(500);
-    
+
     const sessionIndex = activeSessions.findIndex(s => s.id === sessionId);
     if (sessionIndex === -1) {
       throw new Error('Session not found');
@@ -168,15 +220,26 @@ export const userTestService = {
     const session = activeSessions[sessionIndex];
     session.status = 'completed';
 
-    // Calculate score
-    let correctCount = 0;
-    session.answers.forEach(answer => {
-      if (correctAnswers[answer.questionId] === answer.selectedOptionId) {
-        correctCount++;
+    const test = await testService.getTest(session.testId);
+    if (!test) {
+      throw new Error('Test not found');
+    }
+
+    const questions = mockTestQuestions[session.testId] || [];
+    let pointsEarned = 0;
+    let totalPoints = 0;
+
+    questions.forEach(question => {
+      totalPoints += question.points;
+      const answer = session.answers.find(a => a.questionId === question.id);
+      if (answer && correctAnswers[question.id] === answer.selectedOptionId) {
+        pointsEarned += question.points;
       }
     });
 
-    const score = Math.round((correctCount / mockTestQuestions.length) * 100);
+    const score = totalPoints > 0 ? Math.round((pointsEarned / totalPoints) * 100) : 0;
+    const passed = score >= test.minSuccessPercentage;
+
     const startTime = new Date(session.startedAt);
     const endTime = new Date();
     const durationMs = endTime.getTime() - startTime.getTime();
@@ -184,12 +247,23 @@ export const userTestService = {
     const durationSeconds = Math.floor((durationMs % 60000) / 1000);
     const duration = `${durationMinutes}m ${durationSeconds}s`;
 
+    if (!userTestAttempts[session.userId]) {
+      userTestAttempts[session.userId] = [];
+    }
+    userTestAttempts[session.userId].push({
+      testId: session.testId,
+      completedAt: endTime.toISOString(),
+      passed
+    });
+
     const result: UserTestResult = {
       score,
-      totalQuestions: mockTestQuestions.length,
-      correctAnswers: correctCount,
+      pointsEarned,
+      totalPoints,
+      passed,
       completedAt: endTime.toISOString(),
-      duration
+      duration,
+      certificateId: passed ? test.certificateId : undefined
     };
 
     activeSessions[sessionIndex] = session;

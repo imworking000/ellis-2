@@ -4,22 +4,21 @@ export interface Test {
   description: string;
   createdAt: string;
   updatedAt: string;
-  status: 'processing' | 'draft' | 'published' | 'archived';
-  sourceDocuments: TestSourceDocument[];
+  status: 'processing' | 'draft' | 'active' | 'inactive';
+  documents: TestDocument[];
   questions: TestQuestion[];
-  maxQuestions: number;
-  estimatedQuestions: number;
-  hasDeprecatedContent: boolean;
+  duration: number;
+  certificateId?: string;
+  minSuccessPercentage: number;
+  retryCount: number;
+  retryBackoffHours: number;
   processingJobId?: string;
 }
 
-export interface TestSourceDocument {
-  documentId: string;
-  documentName: string;
-  version: number;
-  currentVersion: number;
-  selectedChapters: string[];
-  isDeprecated: boolean;
+export interface TestDocument {
+  name: string;
+  fileType: 'pdf' | 'txt';
+  uploadedAt: string;
 }
 
 export interface TestQuestion {
@@ -27,8 +26,7 @@ export interface TestQuestion {
   question: string;
   options: TestOption[];
   correctAnswerId: string;
-  sourceChapterId?: string;
-  isDeprecated: boolean;
+  points: number;
   isManual: boolean;
   createdAt: string;
   updatedAt: string;
@@ -42,35 +40,45 @@ export interface TestOption {
 export interface TestFormData {
   name: string;
   description: string;
-  maxQuestions: number;
-  selectedLabels: LabelFilter[];
+  questionCount: number;
+  duration: number;
+  certificateId?: string;
+  minSuccessPercentage: number;
+  retryCount: number;
+  retryBackoffHours: number;
+  documents: File[];
 }
 
-export interface LabelFilter {
-  labelKey: string;
-  labelName: string;
-  value: string;
-}
-
-export interface TestHistory {
+export interface TestAssignment {
   id: string;
   testId: string;
-  testName: string;
-  scheduledDate: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  attendees: number;
-  completedBy: number;
-  averageScore: number;
-  duration: number; // in minutes
-  createdAt: string;
+  userId: string;
+  assignedAt: string;
+  attempts: TestAttempt[];
 }
 
-export interface QuestionEstimate {
-  totalChapters: number;
-  estimatedQuestions: number;
-  selectedDocuments: Array<{
-    documentName: string;
-    chapters: number;
-    questions: number;
-  }>;
+export interface TestAttempt {
+  id: string;
+  startedAt: string;
+  completedAt?: string;
+  score?: number;
+  pointsEarned?: number;
+  totalPoints?: number;
+  passed: boolean;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  answers: TestAnswerRecord[];
+}
+
+export interface TestAnswerRecord {
+  questionId: string;
+  selectedOptionId: string;
+  isCorrect: boolean;
+  pointsEarned: number;
+  answeredAt: string;
+}
+
+export interface Certificate {
+  id: string;
+  name: string;
+  description: string;
 }

@@ -1,16 +1,16 @@
 export interface UserTestSession {
   id: string;
-  plannedTestId: string;
-  testCode: string;
+  testId: string;
+  userId: string;
   testName: string;
-  attendeeName: string;
-  attendeeEmail: string;
+  userName: string;
   startedAt: string;
   currentQuestionIndex: number;
   answers: UserAnswer[];
   status: 'in_progress' | 'completed';
-  timeRemaining: number; // in seconds
+  timeRemaining: number;
   totalQuestions: number;
+  attemptNumber: number;
 }
 
 export interface UserAnswer {
@@ -23,6 +23,7 @@ export interface UserTestQuestion {
   id: string;
   question: string;
   options: UserTestOption[];
+  points: number;
 }
 
 export interface UserTestOption {
@@ -31,15 +32,38 @@ export interface UserTestOption {
 }
 
 export interface UserTestLogin {
-  testCode: string;
-  firstName: string;
-  lastName: string;
+  username: string;
+  password: string;
 }
 
 export interface UserTestResult {
   score: number;
-  totalQuestions: number;
-  correctAnswers: number;
+  pointsEarned: number;
+  totalPoints: number;
+  passed: boolean;
   completedAt: string;
   duration: string;
+  certificateId?: string;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  password: string;
+  name: string;
+  email: string;
+}
+
+export interface UserTestAssignment {
+  testId: string;
+  testName: string;
+  status: 'active' | 'inactive';
+  lastAttempt?: {
+    completedAt: string;
+    passed: boolean;
+    canRetry: boolean;
+    nextRetryAt?: string;
+  };
+  attemptsUsed: number;
+  maxAttempts: number;
 }
