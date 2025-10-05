@@ -57,13 +57,19 @@ export interface User {
 export interface UserTestAssignment {
   testId: string;
   testName: string;
+  description: string;
   status: 'active' | 'inactive';
+  duration: number;
+  questionCount: number;
   lastAttempt?: {
     completedAt: string;
     passed: boolean;
+    score: number;
     canRetry: boolean;
     nextRetryAt?: string;
   };
   attemptsUsed: number;
   maxAttempts: number;
+  canTakeNow: boolean;
+  retryMessage?: string;
 }

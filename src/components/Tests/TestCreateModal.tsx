@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, AlertCircle, FileText, Target } from 'lucide-react';
-import { Test, TestFormData, LabelFilter, QuestionEstimate } from '../../types/test';
+import { X, Upload, FileText, AlertCircle, Trash2 } from 'lucide-react';
+import { Test, TestFormData, Certificate } from '../../types/test';
 import { testService } from '../../services/testService';
-import { labelService } from '../../services/labelService';
-import { Label } from '../../types/label';
 
 interface TestCreateModalProps {
   onClose: () => void;
@@ -17,109 +15,94 @@ export const TestCreateModal: React.FC<TestCreateModalProps> = ({
   const [formData, setFormData] = useState<TestFormData>({
     name: '',
     description: '',
-    maxQuestions: 10,
-    selectedLabels: []
+    questionCount: 10,
+    duration: 30,
+    certificateId: undefined,
+    minSuccessPercentage: 70,
+    retryCount: 3,
+    retryBackoffHours: 24,
+    documents: []
   });
-  const [availableLabels, setAvailableLabels] = useState<Label[]>([]);
-  const [estimate, setEstimate] = useState<QuestionEstimate | null>(null);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(false);
-  const [estimating, setEstimating] = useState(false);
   const [error, setError] = useState('');
+  const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
-    loadLabels();
+    loadCertificates();
   }, []);
 
-  useEffect(() => {
-    if (formData.selectedLabels.length > 0) {
-      estimateQuestions();
-    } else {
-      setEstimate(null);
-    }
-  }, [formData.selectedLabels]);
-
-  const loadLabels = async () => {
+  const loadCertificates = async () => {
     try {
-      const labels = await labelService.getAllLabels();
-      setAvailableLabels(labels);
+      const certs = await testService.getCertificates();
+      setCertificates(certs);
     } catch (error) {
-      console.error('Failed to load labels:', error);
+      console.error('Failed to load certificates:', error);
     }
   };
 
-  const estimateQuestions = async () => {
-    setEstimating(true);
-    try {
-      const questionEstimate = await testService.estimateQuestions(formData.selectedLabels);
-      setEstimate(questionEstimate);
-    } catch (error) {
-      console.error('Failed to estimate questions:', error);
-    } finally {
-      setEstimating(false);
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
     }
   };
 
-  const handleAddLabel = () => {
-    const unusedLabels = availableLabels.filter(
-      label => !formData.selectedLabels.some(selected => selected.labelKey === label.key)
-    );
-    
-    if (unusedLabels.length > 0) {
-      const firstLabel = unusedLabels[0];
-      const defaultValue = firstLabel.type === 'enum' ? firstLabel.enumOptions![0] : '';
-      
-      setFormData(prev => ({
-        ...prev,
-        selectedLabels: [
-          ...prev.selectedLabels,
-          {
-            labelKey: firstLabel.key,
-            labelName: firstLabel.displayName,
-            value: defaultValue
-          }
-        ]
-      }));
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const files = Array.from(e.dataTransfer.files).filter(
+        file => file.type === 'application/pdf' || file.type === 'text/plain'
+      );
+      setFormData(prev => ({ ...prev, documents: [...prev.documents, ...files] }));
     }
   };
 
-  const handleRemoveLabel = (index: number) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      setFormData(prev => ({ ...prev, documents: [...prev.documents, ...files] }));
+    }
+  };
+
+  const handleRemoveDocument = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      selectedLabels: prev.selectedLabels.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleLabelChange = (index: number, field: 'labelKey' | 'value', value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedLabels: prev.selectedLabels.map((label, i) => {
-        if (i === index) {
-          if (field === 'labelKey') {
-            const selectedLabel = availableLabels.find(l => l.key === value);
-            return {
-              ...label,
-              labelKey: value,
-              labelName: selectedLabel?.displayName || value,
-              value: selectedLabel?.type === 'enum' ? selectedLabel.enumOptions![0] : ''
-            };
-          }
-          return { ...label, [field]: value };
-        }
-        return label;
-      })
+      documents: prev.documents.filter((_, i) => i !== index)
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       setError('Test name is required');
       return;
     }
 
-    if (formData.selectedLabels.length === 0) {
-      setError('At least one label filter is required');
+    if (formData.documents.length === 0) {
+      setError('At least one document is required');
+      return;
+    }
+
+    if (formData.questionCount < 1 || formData.questionCount > 100) {
+      setError('Question count must be between 1 and 100');
+      return;
+    }
+
+    if (formData.duration < 5) {
+      setError('Duration must be at least 5 minutes');
+      return;
+    }
+
+    if (formData.minSuccessPercentage < 0 || formData.minSuccessPercentage > 100) {
+      setError('Success percentage must be between 0 and 100');
       return;
     }
 
@@ -136,16 +119,6 @@ export const TestCreateModal: React.FC<TestCreateModalProps> = ({
     }
   };
 
-  const getAvailableLabelsForSelect = (currentIndex: number) => {
-    const usedKeys = formData.selectedLabels
-      .map((_, i) => i !== currentIndex ? formData.selectedLabels[i].labelKey : null)
-      .filter(Boolean);
-    
-    return availableLabels.filter(label => !usedKeys.includes(label.key));
-  };
-
-  const canAddMoreLabels = formData.selectedLabels.length < availableLabels.length;
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
@@ -160,7 +133,6 @@ export const TestCreateModal: React.FC<TestCreateModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Test Name */}
           <div>
             <label className="block text-sm font-medium text-black mb-2">
               Test Name <span className="text-red-500">*</span>
@@ -174,7 +146,6 @@ export const TestCreateModal: React.FC<TestCreateModalProps> = ({
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-black mb-2">
               Description
@@ -188,154 +159,147 @@ export const TestCreateModal: React.FC<TestCreateModalProps> = ({
             />
           </div>
 
-          {/* Max Questions */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Questions
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              value={formData.maxQuestions}
-              onChange={(e) => setFormData(prev => ({ ...prev, maxQuestions: parseInt(e.target.value) || 10 }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
-            />
-          </div>
-
-          {/* Label Filters */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-medium text-black">
-                Chapter Selection by Labels <span className="text-red-500">*</span>
+          <div
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
+              dragActive ? 'border-[#F8AF00] bg-[#F8AF00] bg-opacity-5' : 'border-gray-300'
+            }`}
+          >
+            <div className="text-center">
+              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <label className="cursor-pointer">
+                <span className="text-[#F8AF00] hover:text-[#E69F00] font-medium">
+                  Click to upload
+                </span>
+                <span className="text-[#5D5D5D]"> or drag and drop</span>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.txt"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
               </label>
-              {canAddMoreLabels && (
-                <button
-                  type="button"
-                  onClick={handleAddLabel}
-                  className="flex items-center gap-1 px-3 py-1 text-sm bg-[#F8AF00] text-black rounded-lg hover:bg-[#E69F00] transition-colors"
-                >
-                  <Plus className="w-3 h-3" />
-                  Add Filter
-                </button>
-              )}
+              <p className="text-sm text-[#5D5D5D] mt-2">PDF or TXT files</p>
             </div>
 
-            <div className="space-y-3">
-              {formData.selectedLabels.map((labelFilter, index) => {
-                const selectedLabel = availableLabels.find(l => l.key === labelFilter.labelKey);
-                const availableForSelect = getAvailableLabelsForSelect(index);
-
-                return (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <select
-                      value={labelFilter.labelKey}
-                      onChange={(e) => handleLabelChange(index, 'labelKey', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
-                    >
-                      {availableForSelect.map(label => (
-                        <option key={label.key} value={label.key}>
-                          {label.displayName}
-                        </option>
-                      ))}
-                    </select>
-
-                    {selectedLabel?.type === 'enum' ? (
-                      <select
-                        value={labelFilter.value}
-                        onChange={(e) => handleLabelChange(index, 'value', e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
-                      >
-                        {selectedLabel.enumOptions?.map(option => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        value={labelFilter.value}
-                        onChange={(e) => handleLabelChange(index, 'value', e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
-                        placeholder="Enter value"
-                      />
-                    )}
-
+            {formData.documents.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {formData.documents.map((doc, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 text-[#5D5D5D]" />
+                      <span className="text-sm text-black">{doc.name}</span>
+                      <span className="text-xs text-[#5D5D5D]">
+                        ({(doc.size / 1024).toFixed(1)} KB)
+                      </span>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => handleRemoveLabel(index)}
-                      className="p-2 text-[#5D5D5D] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      onClick={() => handleRemoveDocument(index)}
+                      className="p-1 text-[#5D5D5D] hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                );
-              })}
-            </div>
-
-            {formData.selectedLabels.length === 0 && (
-              <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                <Target className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-[#5D5D5D]">Add label filters to select chapters</p>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Question Estimate */}
-          {estimate && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="font-medium text-blue-900">Question Estimate</h3>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Selected Chapters:</span>
-                  <span className="font-medium text-blue-900">{estimate.totalChapters}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Estimated Questions:</span>
-                  <span className="font-medium text-blue-900">{estimate.estimatedQuestions}</span>
-                </div>
-              </div>
-              
-              {estimate.selectedDocuments.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-blue-200">
-                  <div className="text-xs text-blue-700 mb-2">Source Documents:</div>
-                  {estimate.selectedDocuments.map((doc, index) => (
-                    <div key={index} className="flex justify-between text-xs text-blue-600">
-                      <span>{doc.documentName}</span>
-                      <span>{doc.chapters} chapters, ~{doc.questions} questions</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Number of Questions
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={formData.questionCount}
+                onChange={(e) => setFormData(prev => ({ ...prev, questionCount: parseInt(e.target.value) || 10 }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
+              />
             </div>
-          )}
 
-          {/* Loading State for Estimate */}
-          {estimating && !estimate && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="font-medium text-blue-900">Question Estimate</h3>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Analyzing chapters...</span>
-                  <div className="w-16 h-4 bg-blue-200 rounded animate-pulse"></div>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Calculating questions...</span>
-                  <div className="w-12 h-4 bg-blue-200 rounded animate-pulse"></div>
-                </div>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Duration (minutes)
+              </label>
+              <input
+                type="number"
+                min="5"
+                value={formData.duration}
+                onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 30 }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
+              />
             </div>
-          )}
+          </div>
 
-          {/* Error Display */}
+          <div>
+            <label className="block text-sm font-medium text-black mb-2">
+              Certificate (Optional)
+            </label>
+            <select
+              value={formData.certificateId || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, certificateId: e.target.value || undefined }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
+            >
+              <option value="">No certificate</option>
+              {certificates.map(cert => (
+                <option key={cert.id} value={cert.id}>
+                  {cert.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Pass % Required
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={formData.minSuccessPercentage}
+                onChange={(e) => setFormData(prev => ({ ...prev, minSuccessPercentage: parseInt(e.target.value) || 70 }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Max Retries
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="10"
+                value={formData.retryCount}
+                onChange={(e) => setFormData(prev => ({ ...prev, retryCount: parseInt(e.target.value) || 3 }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Retry Wait (hrs)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.retryBackoffHours}
+                onChange={(e) => setFormData(prev => ({ ...prev, retryBackoffHours: parseInt(e.target.value) || 24 }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F8AF00] focus:border-transparent outline-none"
+              />
+            </div>
+          </div>
+
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
               <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
@@ -343,7 +307,6 @@ export const TestCreateModal: React.FC<TestCreateModalProps> = ({
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"
@@ -354,7 +317,7 @@ export const TestCreateModal: React.FC<TestCreateModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading || estimating}
+              disabled={loading}
               className="flex-1 px-4 py-2 bg-[#F8AF00] text-black rounded-lg hover:bg-[#E69F00] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {loading ? 'Creating...' : 'Create Test'}
