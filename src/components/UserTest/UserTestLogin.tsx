@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { GraduationCap, User, Hash, AlertCircle, Loader2 } from 'lucide-react';
+import { GraduationCap, User, Hash, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { UserTestLogin as UserTestLoginType, UserTestSession } from '../../types/userTest';
 import { PlannedTest } from '../../types/plannedTest';
 import { userTestService } from '../../services/userTestService';
 
 interface UserTestLoginProps {
   onLoginSuccess: (session: UserTestSession, plannedTest: PlannedTest) => void;
+  onBack?: () => void;
 }
 
-export const UserTestLogin: React.FC<UserTestLoginProps> = ({ onLoginSuccess }) => {
+export const UserTestLogin: React.FC<UserTestLoginProps> = ({ onLoginSuccess, onBack }) => {
   const [formData, setFormData] = useState<UserTestLoginType>({
     testCode: '',
     firstName: '',
@@ -41,6 +42,17 @@ export const UserTestLogin: React.FC<UserTestLoginProps> = ({ onLoginSuccess }) 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        {/* Back Button */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-[#5D5D5D] hover:text-black transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Admin
+          </button>
+        )}
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">

@@ -17,17 +17,17 @@ function App() {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [showUserTest, setShowUserTest] = useState(false);
 
-  // Check if we should show the user test interface
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/test') {
-      setShowUserTest(true);
-    }
-  }, []);
+  const handleTakeTest = () => {
+    setShowUserTest(true);
+  };
+
+  const handleBackToAdmin = () => {
+    setShowUserTest(false);
+  };
 
   // If showing user test, render only that
   if (showUserTest) {
-    return <UserTestApp />;
+    return <UserTestApp onBack={handleBackToAdmin} />;
   }
 
   const handleTestSelect = (testId: string) => {
@@ -62,9 +62,10 @@ function App() {
   };
   return (
     <div className="min-h-screen bg-white">
-      <Header 
-        currentPage={currentPage} 
+      <Header
+        currentPage={currentPage}
         onMenuToggle={() => setIsMenuExpanded(!isMenuExpanded)}
+        onTakeTest={handleTakeTest}
       />
       {renderCurrentPage()}
       <RightMenu 

@@ -9,11 +9,21 @@ import { userTestService } from '../../services/userTestService';
 
 type TestState = 'login' | 'welcome' | 'testing' | 'results';
 
-export const UserTestApp: React.FC = () => {
+interface UserTestAppProps {
+  onBack?: () => void;
+}
+
+export const UserTestApp: React.FC<UserTestAppProps> = ({ onBack }) => {
   const [currentState, setCurrentState] = useState<TestState>('login');
   const [session, setSession] = useState<UserTestSession | null>(null);
   const [plannedTest, setPlannedTest] = useState<PlannedTest | null>(null);
   const [testResult, setTestResult] = useState<UserTestResult | null>(null);
+
+  const handleBackToAdmin = () => {
+    if (onBack) {
+      onBack();
+    }
+  };
 
   const handleLoginSuccess = (newSession: UserTestSession, newPlannedTest: PlannedTest) => {
     setSession(newSession);
@@ -58,7 +68,7 @@ export const UserTestApp: React.FC = () => {
 
   switch (currentState) {
     case 'login':
-      return <UserTestLogin onLoginSuccess={handleLoginSuccess} />;
+      return <UserTestLogin onLoginSuccess={handleLoginSuccess} onBack={onBack ? handleBackToAdmin : undefined} />;
     
     case 'welcome':
       return session && plannedTest ? (

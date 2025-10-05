@@ -4,6 +4,7 @@ import { GraduationCap, Search, User, Menu, ExternalLink } from 'lucide-react';
 interface HeaderProps {
   currentPage: string;
   onMenuToggle: () => void;
+  onTakeTest?: () => void;
 }
 
 const getPageTitle = (page: string) => {
@@ -15,7 +16,7 @@ const getPageTitle = (page: string) => {
   }
 };
 
-export const Header: React.FC<HeaderProps> = ({ currentPage, onMenuToggle }) => {
+export const Header: React.FC<HeaderProps> = ({ currentPage, onMenuToggle, onTakeTest }) => {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -42,16 +43,16 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onMenuToggle }) => 
           {/* Right Section - Search, Notifications, Profile */}
           <div className="flex items-center gap-4">
             {/* Test Interface Link */}
-            <a
-              href="/test"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-[#5D5D5D] hover:text-[#F8AF00] hover:bg-[#F8AF00] hover:bg-opacity-10 rounded-lg transition-colors"
-              title="Open Test Interface"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Take Test
-            </a>
+            {onTakeTest && (
+              <button
+                onClick={onTakeTest}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-[#5D5D5D] hover:text-[#F8AF00] hover:bg-[#F8AF00] hover:bg-opacity-10 rounded-lg transition-colors"
+                title="Open Test Interface"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Take Test
+              </button>
+            )}
 
             {/* Search */}
             <div className="relative">
