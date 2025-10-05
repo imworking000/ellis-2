@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Save, RefreshCw, Trash2, Edit3, CheckCircle, X, Lock, Unlock, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Plus, Save, RefreshCw, Trash2, CreditCard as Edit3, CheckCircle, X, Lock, Unlock, BarChart3 } from 'lucide-react';
 import { Test, TestQuestion } from '../../types/test';
 import { testService } from '../../services/testService';
 import { QuestionEditor } from './QuestionEditor';
