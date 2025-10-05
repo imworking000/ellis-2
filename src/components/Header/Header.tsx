@@ -8,20 +8,8 @@ interface HeaderProps {
 
 const getPageTitle = (page: string) => {
   switch (page) {
-    case 'documents':
-      return 'Document Library';
-    case 'labels':
-      return 'Label Management';
-    case 'jobs':
-      return 'Jobs & Processing';
-    case 'analytics':
-      return 'Analytics';
-    case 'users':
-      return 'User Management';
-    case 'settings':
-      return 'Settings';
-    case 'help':
-      return 'Help & Support';
+    case 'tests':
+      return 'Test Management';
     default:
       return 'E-Learning Platform';
   }

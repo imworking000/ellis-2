@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
-import { 
-  Menu, 
-  X, 
-  FileText, 
-  Tag,
-  BarChart3, 
-  ChevronRight,
-  Calendar
+import React from 'react';
+import {
+  X,
+  FileText,
+  ChevronRight
 } from 'lucide-react';
 
 interface RightMenuProps {
@@ -18,35 +14,11 @@ interface RightMenuProps {
 
 const menuItems = [
   {
-    id: 'documents',
-    label: 'Documents',
-    icon: FileText,
-    description: 'Manage your learning content'
-  },
-  {
-    id: 'labels',
-    label: 'Labels',
-    icon: Tag,
-    description: 'Define metadata labels'
-  },
-  //{
-  //  id: 'jobs',
-  //  label: 'Jobs',
-  //  icon: BarChart3,
-  //  description: 'Track asynchronous operations'
-  //},
-  {
     id: 'tests',
     label: 'Tests',
     icon: FileText,
     description: 'Create and manage assessments'
-  },
-  {
-    id: 'planned-tests',
-    label: 'Planned Tests',
-    icon: Calendar,
-    description: 'Schedule and track test sessions'
-  },
+  }
 ];
 
 export const RightMenu: React.FC<RightMenuProps> = ({ currentPage, onPageChange, isExpanded, onToggle }) => {
