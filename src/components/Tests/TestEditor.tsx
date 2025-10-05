@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Save, AlertTriangle, RefreshCw, Trash2, Edit3, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, Plus, Save, RefreshCw, Trash2, Edit3, CheckCircle, X, Lock, Unlock, BarChart3 } from 'lucide-react';
 import { Test, TestQuestion } from '../../types/test';
 import { testService } from '../../services/testService';
 import { QuestionEditor } from './QuestionEditor';
+import { TestStatistics } from './TestStatistics';
 
 interface TestEditorProps {
   testId: string;
@@ -17,6 +18,8 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState<TestQuestion | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [showStatistics, setShowStatistics] = useState(false);
 
   useEffect(() => {
     loadTest();
@@ -98,8 +101,38 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
     setEditingQuestionId(null);
   };
 
-  const hasDeprecatedQuestions = test?.questions.some(q => q.isDeprecated) || false;
-  const canSave = !hasDeprecatedQuestions;
+  const isActive = test?.status === 'active';
+  const isInactive = test?.status === 'inactive';
+  const canEdit = isInactive;
+
+  const handlePublish = async () => {
+    if (!test) return;
+    setPublishing(true);
+    try {
+      const updatedTest = await testService.publishTest(test.id);
+      setTest(updatedTest);
+    } catch (error) {
+      console.error('Failed to publish test:', error);
+      alert(error instanceof Error ? error.message : 'Failed to publish test');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!test) return;
+    if (!confirm('Are you sure you want to unpublish this test? Users will no longer be able to take it.')) return;
+    setPublishing(true);
+    try {
+      const updatedTest = await testService.unpublishTest(test.id);
+      setTest(updatedTest);
+    } catch (error) {
+      console.error('Failed to unpublish test:', error);
+      alert(error instanceof Error ? error.message : 'Failed to unpublish test');
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -140,51 +173,88 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
             </button>
             <div className="h-6 w-px bg-gray-300" />
             <div>
-              <h1 className="text-xl font-bold text-black">{test.name}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold text-black">{test.name}</h1>
+                {isActive && (
+                  <div className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    <Lock className="w-3 h-3" />
+                    Published
+                  </div>
+                )}
+                {isInactive && (
+                  <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                    <Unlock className="w-3 h-3" />
+                    Draft
+                  </div>
+                )}
+              </div>
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-sm text-[#5D5D5D]">
-                  {test.questions.length} / {test.maxQuestions} questions
+                  {test.questions.length} questions
                 </span>
-                {test.hasDeprecatedContent && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                    <AlertTriangle className="w-3 h-3" />
-                    Has Deprecated Content
-                  </div>
+                {test.publishedAt && (
+                  <span className="text-sm text-[#5D5D5D]">
+                    Published: {new Date(test.publishedAt).toLocaleDateString()}
+                  </span>
                 )}
               </div>
             </div>
           </div>
           
           <div className="flex gap-3">
-            <button
-              onClick={handleAddManualQuestion}
-              className="flex items-center gap-2 border border-gray-300 text-[#5D5D5D] px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Manual Question
-            </button>
-            <button
-              disabled={!canSave}
-              className="flex items-center gap-2 bg-[#F8AF00] text-black px-4 py-2 rounded-lg hover:bg-[#E69F00] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              <Save className="w-4 h-4" />
-              Save Changes
-            </button>
+            {isActive && (
+              <>
+                <button
+                  onClick={() => setShowStatistics(!showStatistics)}
+                  className="flex items-center gap-2 border border-gray-300 text-[#5D5D5D] px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  {showStatistics ? 'Hide' : 'View'} Statistics
+                </button>
+                <button
+                  onClick={handleUnpublish}
+                  disabled={publishing}
+                  className="flex items-center gap-2 border border-gray-300 text-[#5D5D5D] px-4 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  <Unlock className="w-4 h-4" />
+                  {publishing ? 'Unpublishing...' : 'Unpublish Test'}
+                </button>
+              </>
+            )}
+            {isInactive && (
+              <>
+                <button
+                  onClick={handleAddManualQuestion}
+                  className="flex items-center gap-2 border border-gray-300 text-[#5D5D5D] px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Manual Question
+                </button>
+                <button
+                  onClick={handlePublish}
+                  disabled={publishing || test.questions.length === 0}
+                  className="flex items-center gap-2 bg-[#F8AF00] text-black px-4 py-2 rounded-lg hover:bg-[#E69F00] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  <Lock className="w-4 h-4" />
+                  {publishing ? 'Publishing...' : 'Publish Test'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Warning for deprecated content */}
-      {hasDeprecatedQuestions && (
-        <div className="bg-orange-50 border-b border-orange-200 px-6 py-3">
+      {/* Read-only warning for published tests */}
+      {isActive && (
+        <div className="bg-blue-50 border-b border-blue-200 px-6 py-3">
           <div className="max-w-7xl mx-auto flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0" />
+            <Lock className="w-5 h-5 text-blue-600 flex-shrink-0" />
             <div>
-              <p className="text-orange-800 font-medium">
-                This test contains questions from deprecated document versions
+              <p className="text-blue-800 font-medium">
+                This test is published and in read-only mode
               </p>
-              <p className="text-orange-700 text-sm">
-                Please regenerate or remove deprecated questions before saving changes
+              <p className="text-blue-700 text-sm">
+                Unpublish the test to make changes to questions
               </p>
             </div>
           </div>
@@ -197,11 +267,7 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
           {test.questions.map((question, index) => (
             <div
               key={question.id}
-              className={`bg-white border rounded-lg p-6 ${
-                question.isDeprecated 
-                  ? 'border-orange-300 border-2 bg-orange-50' 
-                  : 'border-gray-200'
-              }`}
+              className="bg-white border border-gray-200 rounded-lg p-6"
             >
               {/* Question Header */}
               <div className="flex items-start justify-between mb-4">
@@ -216,43 +282,39 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
                           Manual
                         </span>
                       )}
-                      {question.isDeprecated && (
-                        <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
-                          <AlertTriangle className="w-3 h-3" />
-                          Deprecated
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setEditingQuestionId(question.id)}
-                    className="p-2 text-[#5D5D5D] hover:text-[#F8AF00] hover:bg-[#F8AF00] hover:bg-opacity-10 rounded-lg transition-colors"
-                    title="Edit question"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                  {!question.isManual && (
+                {canEdit && (
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleRegenerateQuestion(question.id)}
-                      disabled={regeneratingId === question.id}
-                      className="p-2 text-[#5D5D5D] hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-                      title="Regenerate question"
+                      onClick={() => setEditingQuestionId(question.id)}
+                      className="p-2 text-[#5D5D5D] hover:text-[#F8AF00] hover:bg-[#F8AF00] hover:bg-opacity-10 rounded-lg transition-colors"
+                      title="Edit question"
                     >
-                      <RefreshCw className={`w-4 h-4 ${regeneratingId === question.id ? 'animate-spin' : ''}`} />
+                      <Edit3 className="w-4 h-4" />
                     </button>
-                  )}
-                  <button
-                    onClick={() => handleDeleteClick(question)}
-                    disabled={deletingId === question.id}
-                    className="p-2 text-[#5D5D5D] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                    title="Delete question"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    {!question.isManual && (
+                      <button
+                        onClick={() => handleRegenerateQuestion(question.id)}
+                        disabled={regeneratingId === question.id}
+                        className="p-2 text-[#5D5D5D] hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Regenerate question"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${regeneratingId === question.id ? 'animate-spin' : ''}`} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDeleteClick(question)}
+                      disabled={deletingId === question.id}
+                      className="p-2 text-[#5D5D5D] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Delete question"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Question Content */}
@@ -313,6 +375,14 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
           )}
         </div>
       </div>
+
+      {/* Statistics Modal */}
+      {showStatistics && (
+        <TestStatistics
+          testId={test.id}
+          onClose={() => setShowStatistics(false)}
+        />
+      )}
 
       {/* Question Editor Modal */}
       {editingQuestionId && (
