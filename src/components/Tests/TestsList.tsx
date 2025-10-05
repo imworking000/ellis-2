@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, FileText, Calendar, Users, AlertTriangle, Edit3, Eye, Trash2, Loader2, ExternalLink } from 'lucide-react';
+import { Plus, FileText, Calendar, Users, AlertTriangle, CreditCard as Edit3, Eye, Trash2, Loader2, ExternalLink } from 'lucide-react';
 import { Test } from '../../types/test';
 import { testService } from '../../services/testService';
 import { jobService } from '../../services/jobService';
