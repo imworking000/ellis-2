@@ -171,12 +171,6 @@ export const TestsList: React.FC<TestsListProps> = ({ onTestSelect, onJobSelect 
                           >
                             {test.name}
                           </button>
-                          {test.hasDeprecatedContent && (
-                            <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                              <AlertTriangle className="w-3 h-3" />
-                              Deprecated Content
-                            </div>
-                          )}
                         </div>
                         <div className="text-sm text-[#5D5D5D] mt-1">{test.description}</div>
                         {test.status === 'processing' && (
@@ -190,7 +184,7 @@ export const TestsList: React.FC<TestsListProps> = ({ onTestSelect, onJobSelect 
                   </td>
                   <td className="py-4 px-4">
                     <div className="text-sm">
-                      <div className="text-black font-medium">{test.questions.length} / {test.maxQuestions}</div>
+                      <div className="text-black font-medium">{test.questions.length}</div>
                       {test.status === 'processing' ? (
                         <div className="flex items-center justify-between">
                           <div className="text-[#5D5D5D]">
@@ -210,13 +204,13 @@ export const TestsList: React.FC<TestsListProps> = ({ onTestSelect, onJobSelect 
                           )} */}
                         </div>
                       ) : (
-                        <div className="text-[#5D5D5D]">Est. {test.estimatedQuestions} available</div>
+                        <div className="text-[#5D5D5D]">Questions ready</div>
                       )}
                     </div>
                   </td>
                   <td className="py-4 px-4">
                     <div className="text-sm text-[#5D5D5D]">
-                      {test.sourceDocuments.length} document{test.sourceDocuments.length !== 1 ? 's' : ''}
+                      {test.documents.length} document{test.documents.length !== 1 ? 's' : ''}
                     </div>
                   </td>
                   <td className="py-4 px-4">
