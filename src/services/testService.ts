@@ -318,6 +318,13 @@ const sampleTestAssignments: TestAssignment[] = [
         answers: []
       }
     ]
+  },
+  {
+    id: 'assign-7',
+    testId: 'test-2',
+    userId: 'user-2',
+    assignedAt: '2024-01-25',
+    attempts: []
   }
 ];
 
