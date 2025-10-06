@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Save, RefreshCw, Trash2, CreditCard as Edit3, CheckCircle, X, Lock, Unlock, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Plus, Save, RefreshCw, Trash2, Pencil, CheckCircle, X, Lock, Unlock, BarChart3 } from 'lucide-react';
 import { Test, TestQuestion } from '../../types/test';
 import { testService } from '../../services/testService';
 import { QuestionEditor } from './QuestionEditor';
@@ -342,7 +342,7 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
                 onClick={() => setEditingSettings(true)}
                 className="flex items-center gap-2 text-[#5D5D5D] hover:text-[#F8AF00] transition-colors"
               >
-                <Edit3 className="w-4 h-4" />
+                <Pencil className="w-4 h-4" />
                 Edit Settings
               </button>
             )}
@@ -470,7 +470,7 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
                       className="p-2 text-[#5D5D5D] hover:text-[#F8AF00] hover:bg-[#F8AF00] hover:bg-opacity-10 rounded-lg transition-colors"
                       title="Edit question"
                     >
-                      <Edit3 className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                     {!question.isManual && (
                       <button

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, FileText, Calendar, Users, AlertTriangle, CreditCard as Edit3, Eye, Trash2, Loader2, ExternalLink, Lock, Unlock } from 'lucide-react';
+import { Plus, FileText, Calendar, Users, AlertTriangle, Pencil, Eye, Trash2, Loader2, ExternalLink, Lock, Unlock } from 'lucide-react';
 import { Test } from '../../types/test';
 import { testService } from '../../services/testService';
 import { jobService } from '../../services/jobService';
@@ -82,7 +82,7 @@ export const TestsList: React.FC<TestsListProps> = ({ onTestSelect, onJobSelect 
       case 'published':
         return <Eye className="w-4 h-4 text-green-600" />;
       case 'draft':
-        return <Edit3 className="w-4 h-4 text-orange-500" />;
+        return <Pencil className="w-4 h-4 text-orange-500" />;
       case 'archived':
         return <FileText className="w-4 h-4 text-gray-400" />;
       default:
@@ -250,7 +250,7 @@ export const TestsList: React.FC<TestsListProps> = ({ onTestSelect, onJobSelect 
                         className="p-2 text-[#5D5D5D] hover:text-[#F8AF00] hover:bg-[#F8AF00] hover:bg-opacity-10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Edit questions"
                       >
-                        <Edit3 className="w-4 h-4" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteTest(test.id)}
