@@ -34,9 +34,10 @@ export const UserTestApp: React.FC<UserTestAppProps> = ({ onBack }) => {
     setAssignments(userAssignments);
 
     const activeAssignments = userAssignments.filter(a => a.status === 'active');
+    const takableAssignments = activeAssignments.filter(a => a.canTakeNow);
 
-    if (activeAssignments.length === 1 && activeAssignments[0].canTakeNow) {
-      await handleSelectTest(activeAssignments[0].testId);
+    if (takableAssignments.length === 1 && (!takableAssignments[0].lastAttempt || !takableAssignments[0].lastAttempt.passed)) {
+      await handleSelectTest(takableAssignments[0].testId);
     } else {
       setCurrentState('selection');
     }
