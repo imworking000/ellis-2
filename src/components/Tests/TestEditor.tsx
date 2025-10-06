@@ -15,6 +15,7 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [regeneratingNew, setRegeneratingNew] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState<TestQuestion | null>(null);
@@ -79,6 +80,21 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
       console.error('Failed to regenerate question:', error);
     } finally {
       setRegeneratingId(null);
+    }
+  };
+
+  const handleRegenerateNewQuestion = async () => {
+    if (!test) return;
+
+    setRegeneratingNew(true);
+    try {
+      const newQuestion = await testService.generateNewQuestion(test.id);
+      await loadTest();
+    } catch (error) {
+      console.error('Failed to generate new question:', error);
+      alert('Failed to generate new question');
+    } finally {
+      setRegeneratingNew(false);
     }
   };
 
@@ -275,7 +291,15 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
                   className="flex items-center gap-2 border border-gray-300 text-[#5D5D5D] px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Manual Question
+                  Add Question Manually
+                </button>
+                <button
+                  onClick={handleRegenerateNewQuestion}
+                  disabled={regeneratingNew}
+                  className="flex items-center gap-2 border border-gray-300 text-[#5D5D5D] px-4 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  <RefreshCw className={`w-4 h-4 ${regeneratingNew ? 'animate-spin' : ''}`} />
+                  {regeneratingNew ? 'Generating...' : 'Generate New Question'}
                 </button>
                 <button
                   onClick={handlePublish}
@@ -436,13 +460,6 @@ export const TestEditor: React.FC<TestEditorProps> = ({ testId, onBack }) => {
                     {index + 1}
                   </span>
                   <div>
-                    <div className="flex items-center gap-2">
-                      {question.isManual && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                          Manual
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </div>
                 

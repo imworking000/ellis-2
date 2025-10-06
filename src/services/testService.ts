@@ -514,6 +514,72 @@ export const testService = {
     return newQuestion;
   },
 
+  async generateNewQuestion(testId: string): Promise<TestQuestion> {
+    await delay(1200);
+    const sampleQuestions = [
+      {
+        question: 'What is the purpose of the useEffect hook in React?',
+        options: [
+          { id: 'a', text: 'To perform side effects in function components' },
+          { id: 'b', text: 'To create state variables' },
+          { id: 'c', text: 'To handle form submissions' },
+          { id: 'd', text: 'To style components' }
+        ],
+        correctAnswerId: 'a'
+      },
+      {
+        question: 'What does the spread operator (...) do in JavaScript?',
+        options: [
+          { id: 'a', text: 'Expands an iterable into individual elements' },
+          { id: 'b', text: 'Creates a new function' },
+          { id: 'c', text: 'Declares a variable' },
+          { id: 'd', text: 'Imports a module' }
+        ],
+        correctAnswerId: 'a'
+      },
+      {
+        question: 'What is the difference between let and const in JavaScript?',
+        options: [
+          { id: 'a', text: 'const creates immutable bindings, let creates mutable bindings' },
+          { id: 'b', text: 'let is faster than const' },
+          { id: 'c', text: 'const is global, let is local' },
+          { id: 'd', text: 'There is no difference' }
+        ],
+        correctAnswerId: 'a'
+      },
+      {
+        question: 'What is prop drilling in React?',
+        options: [
+          { id: 'a', text: 'Passing props through multiple component layers' },
+          { id: 'b', text: 'Creating holes in components' },
+          { id: 'c', text: 'A performance optimization technique' },
+          { id: 'd', text: 'A way to handle events' }
+        ],
+        correctAnswerId: 'a'
+      }
+    ];
+
+    const randomTemplate = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
+
+    const newQuestion: TestQuestion = {
+      id: `q-${Date.now()}`,
+      question: randomTemplate.question,
+      options: randomTemplate.options,
+      correctAnswerId: randomTemplate.correctAnswerId,
+      points: 3,
+      isManual: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const test = sampleTests.find(t => t.id === testId);
+    if (test) {
+      test.questions.push(newQuestion);
+    }
+
+    return newQuestion;
+  },
+
   async getCertificates(): Promise<Certificate[]> {
     await delay(200);
     return [...sampleCertificates];
