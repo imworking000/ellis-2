@@ -5,7 +5,6 @@ import { UserTestWelcome } from './UserTestWelcome';
 import { UserTestInterface } from './UserTestInterface';
 import { UserTestResults } from './UserTestResults';
 import { UserTestSession, UserTestResult, User, UserTestAssignment } from '../../types/userTest';
-import { PlannedTest } from '../../types/plannedTest';
 import { userTestService } from '../../services/userTestService';
 
 type TestState = 'login' | 'selection' | 'welcome' | 'testing' | 'results';
@@ -20,7 +19,6 @@ export const UserTestApp: React.FC<UserTestAppProps> = ({ onBack }) => {
   const [assignments, setAssignments] = useState<UserTestAssignment[]>([]);
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
   const [session, setSession] = useState<UserTestSession | null>(null);
-  const [plannedTest, setPlannedTest] = useState<PlannedTest | null>(null);
   const [testResult, setTestResult] = useState<UserTestResult | null>(null);
 
   const handleBackToAdmin = () => {
@@ -90,7 +88,6 @@ export const UserTestApp: React.FC<UserTestAppProps> = ({ onBack }) => {
     setAssignments([]);
     setSelectedTestId(null);
     setSession(null);
-    setPlannedTest(null);
     setTestResult(null);
     setCurrentState('login');
   };
@@ -98,7 +95,6 @@ export const UserTestApp: React.FC<UserTestAppProps> = ({ onBack }) => {
   const handleBackToSelection = () => {
     setSelectedTestId(null);
     setSession(null);
-    setPlannedTest(null);
     setTestResult(null);
     setCurrentState('selection');
   };
@@ -121,7 +117,6 @@ export const UserTestApp: React.FC<UserTestAppProps> = ({ onBack }) => {
       return session ? (
         <UserTestWelcome
           session={session}
-          plannedTest={plannedTest}
           onStartTest={handleStartTest}
         />
       ) : null;

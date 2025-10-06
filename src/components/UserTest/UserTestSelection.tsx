@@ -55,7 +55,7 @@ export const UserTestSelection: React.FC<UserTestSelectionProps> = ({
   const hasNoActiveTests = activeAssignments.length === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-4">
       <div className="max-w-4xl mx-auto py-8">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="bg-[#F8AF00] p-6">

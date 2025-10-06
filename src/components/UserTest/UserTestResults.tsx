@@ -59,7 +59,7 @@ export const UserTestResults: React.FC<UserTestResultsProps> = ({
   const performance = getPerformanceMessage(result.score);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
@@ -110,13 +110,13 @@ export const UserTestResults: React.FC<UserTestResultsProps> = ({
             </div>
           </div>
 
-          <div className="text-center p-4 bg-purple-50 rounded-xl">
+          <div className="text-center p-4 bg-teal-50 rounded-xl">
             <div className="flex justify-center mb-2">
-              <Clock className="w-6 h-6 text-purple-600" />
+              <Clock className="w-6 h-6 text-teal-600" />
             </div>
-            <div className="text-2xl font-bold text-purple-600">{result.duration}</div>
-            <div className="text-sm text-purple-700">Duration</div>
-            <div className="text-xs text-purple-600 mt-1">
+            <div className="text-2xl font-bold text-teal-600">{result.duration}</div>
+            <div className="text-sm text-teal-700">Duration</div>
+            <div className="text-xs text-teal-600 mt-1">
               total time
             </div>
           </div>

@@ -37,6 +37,28 @@ const mockTestQuestions: Record<string, UserTestQuestion[]> = {
         { id: 'd', text: 'CSS styling' }
       ],
       points: 4
+    },
+    {
+      id: 'q4',
+      question: 'What is the purpose of TypeScript interfaces?',
+      options: [
+        { id: 'a', text: 'Define the shape of objects' },
+        { id: 'b', text: 'Improve runtime speed' },
+        { id: 'c', text: 'Handle async operations' },
+        { id: 'd', text: 'Manage state' }
+      ],
+      points: 4
+    },
+    {
+      id: 'q5',
+      question: 'What does the "readonly" modifier do?',
+      options: [
+        { id: 'a', text: 'Prevents property modification after initialization' },
+        { id: 'b', text: 'Makes properties private' },
+        { id: 'c', text: 'Adds type checking' },
+        { id: 'd', text: 'Optimizes compilation' }
+      ],
+      points: 4
     }
   ]
 };
@@ -44,7 +66,9 @@ const mockTestQuestions: Record<string, UserTestQuestion[]> = {
 const correctAnswers: Record<string, string> = {
   'q1': 'a',
   'q2': 'b',
-  'q3': 'a'
+  'q3': 'a',
+  'q4': 'a',
+  'q5': 'a'
 };
 
 const sampleUsers: User[] = [
@@ -196,7 +220,11 @@ export const userTestService = {
 
   async getTestQuestions(testId: string): Promise<UserTestQuestion[]> {
     await delay(300);
-    return [...(mockTestQuestions[testId] || [])];
+    const questions = mockTestQuestions[testId] || [];
+    if (questions.length === 0) {
+      console.warn(`No questions found for testId: ${testId}`);
+    }
+    return [...questions];
   },
 
   async submitAnswer(sessionId: string, questionId: string, selectedOptionId: string): Promise<UserTestSession> {
@@ -279,10 +307,17 @@ export const userTestService = {
       passed
     });
 
+    const correctAnswers = questions.filter(question => {
+      const answer = session.answers.find(a => a.questionId === question.id);
+      return answer && correctAnswers[question.id] === answer.selectedOptionId;
+    }).length;
+
     const result: UserTestResult = {
       score,
       pointsEarned,
       totalPoints,
+      correctAnswers,
+      totalQuestions: questions.length,
       passed,
       completedAt: endTime.toISOString(),
       duration,

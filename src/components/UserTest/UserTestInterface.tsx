@@ -23,7 +23,7 @@ export const UserTestInterface: React.FC<UserTestInterfaceProps> = ({
 
   useEffect(() => {
     loadQuestions();
-  }, []);
+  }, [session.testId]);
 
   // Timer effect
   useEffect(() => {
@@ -55,7 +55,7 @@ export const UserTestInterface: React.FC<UserTestInterfaceProps> = ({
 
   const loadQuestions = async () => {
     try {
-      const testQuestions = await userTestService.getTestQuestions();
+      const testQuestions = await userTestService.getTestQuestions(session.testId);
       setQuestions(testQuestions);
     } catch (error) {
       console.error('Failed to load questions:', error);

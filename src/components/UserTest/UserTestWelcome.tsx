@@ -1,17 +1,14 @@
 import React from 'react';
-import { Clock, Users, FileText, Play, Calendar } from 'lucide-react';
+import { Clock, FileText, Play, Calendar } from 'lucide-react';
 import { UserTestSession } from '../../types/userTest';
-import { PlannedTest } from '../../types/plannedTest';
 
 interface UserTestWelcomeProps {
   session: UserTestSession;
-  plannedTest: PlannedTest;
   onStartTest: () => void;
 }
 
 export const UserTestWelcome: React.FC<UserTestWelcomeProps> = ({
   session,
-  plannedTest,
   onStartTest
 }) => {
   const formatTime = (timeInSeconds: number) => {
@@ -29,7 +26,7 @@ export const UserTestWelcome: React.FC<UserTestWelcomeProps> = ({
               <Play className="w-8 h-8 text-green-600" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-black mb-2">Welcome, {session.attendeeName}!</h1>
+          <h1 className="text-3xl font-bold text-black mb-2">Welcome, {session.userName}!</h1>
           <p className="text-lg text-[#5D5D5D]">You're ready to start the test</p>
         </div>
 
@@ -59,18 +56,8 @@ export const UserTestWelcome: React.FC<UserTestWelcomeProps> = ({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Users className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <div className="text-sm text-[#5D5D5D]">Test Code</div>
-                <div className="font-medium text-black font-mono">{session.testCode}</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <Calendar className="w-5 h-5 text-indigo-600" />
+              <div className="p-2 bg-teal-100 rounded-lg">
+                <Calendar className="w-5 h-5 text-teal-600" />
               </div>
               <div>
                 <div className="text-sm text-[#5D5D5D]">Started</div>

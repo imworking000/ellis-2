@@ -40,6 +40,8 @@ export interface UserTestResult {
   score: number;
   pointsEarned: number;
   totalPoints: number;
+  correctAnswers: number;
+  totalQuestions: number;
   passed: boolean;
   completedAt: string;
   duration: string;
